@@ -3,7 +3,7 @@
 function redraw()
   screen.clear()
   screen.move(10, 10)
-  screen.text('other stuff')
+  screen.text("Now, we're in business.")
   screen.update()
 end
 
