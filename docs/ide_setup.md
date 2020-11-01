@@ -12,7 +12,13 @@ First (after plugging in the WiFi hub into the norns), make sure your laptop and
 
 1. Create an SMB connection to the norns using **Cmd + K** from Finder in your MacOS (click the desktop). Then type either *smb://norns.local* or the IP address listed in the SYSTEM page on your norns. Use the username **we** and the password **sleep**. You should now see the *dust* directory in your finder window under the *norns.local* (or norns IP Address) network location.
 
-2. You'll also want to connect (via SSH) to the norns. Open a terminal, and type `ssh we@norns.local`. The password, again, is **sleep**.
+2. You'll also want to connect (via SSH) to the norns. Open a terminal, and type `ssh we@norns.local`. The password, again, is **sleep**. You can save this profile in your `.ssh/config` file like this:
+
+    ```bash
+    Host norns
+        HostName 192.168.1.75
+        User we
+    ```
 
 3. Now, you can open Matron by running
 
@@ -23,6 +29,12 @@ First (after plugging in the WiFi hub into the norns), make sure your laptop and
     To quit Matron, type `q` and **Enter**.
 
 We'll use Matron in a bit.
+
+If you want to store the variable for easy access later, you can put the following code in your `.profile` file in the home directory on norns:
+
+```bash
+alias matron="norns/build/maiden-repl/maiden-repl"
+```
 
 ## 3 VS Code Setup
 
@@ -45,6 +57,8 @@ Open up VS Code, and open the folder where you keep your development code (presu
     As for the disabled diagnostic, I just do that because I don't like squiggly lines all over the place with lowercase function names.
 
 Now we should have all the wonderful autocompletion tools that VS Code and the Lua extension have to offer. Sleep soundly.
+
+*Note: Sometimes, for this to work, you may need to type `midi = require 'midi'` at the top of your script (for instance, if you're using `midi`). Save it, and then you can delete the line. VS code caches the relationship for as long as the script file is open.*
 
 ## 4 Running Scripts
 
