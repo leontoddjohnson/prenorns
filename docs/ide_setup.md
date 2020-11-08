@@ -10,13 +10,13 @@ In Maiden (which is awesome), we have access to several pre-defined scripts on i
 
 First (after plugging in the WiFi hub into the norns), make sure your laptop and [norns](https://monome.org/docs/norns/play/#wifi) are connected to the same WiFi network.
 
-1. Create an SMB connection to the norns using **Cmd + K** from Finder in your MacOS (click the desktop). Then type either *smb://norns.local* or the IP address listed in the SYSTEM page on your norns. Use the username **we** and the password **sleep**. You should now see the *dust* directory in your finder window under the *norns.local* (or norns IP Address) network location.
+1. Create an SMB connection to the norns using **Cmd + K** from Finder in your MacOS (click the desktop). Then type either *smb://norns.local* or the IP address listed in the SYSTEM page on your norns. Log in with the [norns credentials](https://monome.org/docs/norns/play/#network-connect). You should now see the *dust* directory in your finder window under the *norns.local* (or norns IP Address) network location.
 
-2. You'll also want to connect (via SSH) to the norns. Open a terminal, and type `ssh we@norns.local`. The password, again, is **sleep**. You can save this profile in your `.ssh/config` file like this:
+2. You'll also want to connect (via [SSH](https://monome.org/docs/norns/play/#ssh)) to the norns. Open a terminal, and type `ssh we@norns.local` or `ssh we@<ip_address>`. The password, again, is **sleep**. You can save this profile in your `.ssh/config` file like this:
 
     ```bash
     Host norns
-        HostName 192.168.1.75
+        HostName norns.local OR <ip_address>
         User we
     ```
 
@@ -38,7 +38,7 @@ alias matron="norns/build/maiden-repl/maiden-repl"
 
 ## 3 VS Code Setup
 
-Open up VS Code, and open the folder where you keep your development code (presumably — preferably — on norns somewhere). 
+Open up VS Code, and open the folder where you keep your development code (presumably — preferably — a Git repo on norns somewhere). 
 
 1. Go to the marketplace and install [the sumneko.lua Lua extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua). 
    
@@ -52,11 +52,11 @@ Open up VS Code, and open the folder where you keep your development code (presu
             "lowercase-global"
         ]
     ```
-    The `"path/to/norns"` is exactly the path to the *norns* directory we cloned above, and the *lua* folder is specifically that subdirectory. You can also add any other paths that contain scripts you want to reference in here, but likely you'll reference those by calling `require`.
+    The `"path/to/norns"` is exactly the path to the *norns* directory we cloned above, and the *lua* folder is specifically that subdirectory. You can also add any other paths that contain scripts you want to reference in here, but likely you'll reference those by calling `require` in your script.
 
-    As for the disabled diagnostic, I just do that because I don't like squiggly lines all over the place with lowercase function names.
+    As for the disabled `"lowercase-global"` diagnostic, I just do that because I don't like squiggly lines all over the place with lowercase function names.
 
-Now we should have all the wonderful autocompletion tools that VS Code and the Lua extension have to offer. Sleep soundly.
+Now we should have all the wonderful autocompletion tools that VS Code and the Lua extension have to offer! Sleep soundly.
 
 *Note: Sometimes, for this to work, you may need to type `midi = require 'midi'` at the top of your script (for instance, if you're using `midi`). Save it, and then you can delete the line. VS code caches the relationship for as long as the script file is open.*
 
@@ -68,7 +68,7 @@ Now, I haven't quite figured out a smoother way to initiate this process, but th
 
 1. *In the norns*, navigate to the script you're working on, and activate it.
 
-2. Open Matron in the terminal (if you haven't already) using the instructions above, and run `norns.script.load(norns.state.script)`. That should basically "rerun" the script that's already loaded. 
+2. Open Matron in the SSH norns terminal (if you haven't already) using the instructions above, and run `norns.script.load(norns.state.script)`. That should basically "rerun" the script that's already loaded. *Note: After you do this for the first time, you probably won't need to do it again!*
 
 3. Now, to automate the process of rerunning your script each time you make an update (and want to see the results), add the following code to the bottom of your script, and then each time you want to rerun the script, run `rerun()` in Matron.
 
@@ -78,9 +78,9 @@ Now, I haven't quite figured out a smoother way to initiate this process, but th
     end
     ```
 
-## Caveats
+# Caveats
 
 Just a few things I found while troubleshooting this:
 
-- Don't `git pull` norns from within the norns directory in your norns ... That was a messy boo-boo on my part. Just do the typical *SYSTEM > UPDATE* as designed.
+- Don't ever `git pull` norns from within the `/norns` directory in your norns ... That was a messy boo-boo on my part. Just do the typical *SYSTEM > UPDATE* as designed :) 
 - If you're going to change the name of a directory in the norns, make sure that either (A) the currently loaded script is *not* in that directory or (B) no script is loaded, or the system script is cleared.
