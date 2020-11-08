@@ -23,7 +23,7 @@ function add_samples()
     }
 
     params:add{
-      type='number', id='s_'..i..'_end', name='Sample '..i..' End', 
+      type='number', id='s_'..i..'_length', name='Sample '..i..' Length', 
       min=0, max=file_length, default=0
     }
 
@@ -54,33 +54,52 @@ function draw_sample(i)
   line_start = params:get('s_'..i..'_start')
   line_start = math.floor((line_start / file_length) * 100)
 
-  line_end = params:get('s_'..i..'_end')
-  line_end = math.floor((line_end / file_length) * 100)
+  line_length = params:get('s_'..i..'_length')
+  line_length = math.floor((line_length / file_length) * 100)
 
   -- Draw the line 4px below line above it
   screen.move(14 + line_start, 10 + 4 * i)
-  screen.line(14 + line_end, 10 + 4 * i)
-end
 
-function draw_cursor()
-  screen.pixel(7, 10 + 4 * cursor)
+  line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
+  screen.line(line_end, 10 + 4 * i)
 end
 
 function redraw()
   screen.clear()
 
-  draw_cursor()
+  -- Annotate where the cursor is (referencing sample)
+  screen.pixel(7, 10 + 4 * cursor)
 
   -- Draw audio file line (main line)
   screen.move(14, 10)
   screen.line(114, 10)
   screen.stroke()
 
+  -- Draw sample line
   for i = 1, 6 do
     draw_sample(i)
   end
 
   screen.update()
+end
+
+function enc(n, i)
+  -- Select sample
+  if n == 1 then
+    cursor = util.clamp(cursor + i, 1, 6)
+  end
+
+  if n == 2 then
+    curr_start = params:get('s_'..cursor..'_start')
+    params:set('s_'..cursor..'_start', curr_start + i)
+  end
+
+  if n == 3 then
+    curr_length = params:get('s_'..cursor..'_length')
+    params:set('s_'..cursor..'_length', curr_length + i)
+  end
+
+  redraw()
 end
 
 function rerun()
