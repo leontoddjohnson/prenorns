@@ -12,7 +12,9 @@ file_length = 1200
 max_buffer = 300
 
 cursor = 1
+alt_2 = false
 
+-- Add parameters for each of the 6 samples of the main file
 function add_samples()
   for i = 1,6 do
     params:add_separator('Sample '..i)
@@ -24,7 +26,7 @@ function add_samples()
 
     params:add{
       type='number', id='s_'..i..'_length', name='Sample '..i..' Length', 
-      min=0, max=file_length, default=0
+      min=0, max=max_buffer, default=0
     }
 
     params:add{
@@ -49,19 +51,33 @@ function init()
   add_samples()
 end
 
--- Draw the line for the sample beneath the main sample line
-function draw_sample(i)
+function draw_sample_line(i)
   line_start = params:get('s_'..i..'_start')
   line_start = math.floor((line_start / file_length) * 100)
 
   line_length = params:get('s_'..i..'_length')
   line_length = math.floor((line_length / file_length) * 100)
 
-  -- Draw the line 4px below line above it
+  -- Draw each line 4px below line above it
   screen.move(14 + line_start, 10 + 4 * i)
 
   line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
   screen.line(line_end, 10 + 4 * i)
+end
+
+function draw_sample_pan(i)
+  line_pan = params:get('s_'..i..'_pan')
+  line_pan = 7 * line_pan
+
+  -- Halfway between the end of the sample line and the edge of the screen is 0 pan
+  screen.move(121 + line_pan, 10 + 4 * i - 1)
+  screen.line(121 + line_pan, 10 + 4 * i + 1)
+end
+
+-- Draw the line for the sample beneath the main sample line
+function draw_sample(i)
+  draw_sample_line(i)
+  draw_sample_pan(i)
 end
 
 function redraw()
@@ -90,8 +106,13 @@ function enc(n, i)
   end
 
   if n == 2 then
-    curr_start = params:get('s_'..cursor..'_start')
-    params:set('s_'..cursor..'_start', curr_start + i)
+    if alt_2 then
+      curr_pan = params:get('s_'..cursor..'_pan')
+      params:set('s_'..cursor..'_pan', curr_pan + i / 10)
+    else
+      curr_start = params:get('s_'..cursor..'_start')
+      params:set('s_'..cursor..'_start', curr_start + i)
+    end
   end
 
   if n == 3 then
@@ -100,6 +121,16 @@ function enc(n, i)
   end
 
   redraw()
+end
+
+function key(n, z)
+  if n == 2 then
+    if z == 1 then
+      alt_2 = true
+    else
+      alt_2 = false
+    end
+  end
 end
 
 function rerun()
