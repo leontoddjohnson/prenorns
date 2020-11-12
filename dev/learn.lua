@@ -31,8 +31,10 @@ function add_samples()
 
     params:add{
       type='number', id='s_'..i..'_level', name='Sample '..i..' Level', 
-      max=0, default=0
+      min=-math.huge, max=0, default=0
     }
+
+    -- To set an action here for level, use util.dbamp(), as in screen below
 
     params:add{
       type='number', id='s_'..i..'_pan', name='Sample '..i..' Pan', 
@@ -57,8 +59,15 @@ function draw_sample_line(i)
 
   line_length = params:get('s_'..i..'_length')
   line_length = math.floor((line_length / file_length) * 100)
-
+  
+  -- amplitude between 0 and 1, exponential decibel changes
+  line_level = params:get('s_'..i..'_level')
+  line_level = util.dbamp(line_level)
+  line_level = util.explin(0.0001, 1, 0, 15, line_level)
+  line_level = math.floor(line_level + 0.5)
+  
   -- Draw each line 4px below line above it
+  screen.level(line_level)
   screen.move(14 + line_start, 10 + 4 * i)
 
   line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
@@ -107,8 +116,8 @@ function enc(n, i)
 
   if n == 2 then
     if alt_2 then
-      curr_pan = params:get('s_'..cursor..'_pan')
-      params:set('s_'..cursor..'_pan', curr_pan + i / 10)
+      curr_level = params:get('s_'..cursor..'_level')
+      params:set('s_'..cursor..'_level', curr_level + i)
     else
       curr_start = params:get('s_'..cursor..'_start')
       params:set('s_'..cursor..'_start', curr_start + i)
@@ -116,8 +125,13 @@ function enc(n, i)
   end
 
   if n == 3 then
-    curr_length = params:get('s_'..cursor..'_length')
-    params:set('s_'..cursor..'_length', curr_length + i)
+    if alt_3 then
+      curr_pan = params:get('s_'..cursor..'_pan')
+      params:set('s_'..cursor..'_pan', curr_pan + i / 10)
+    else
+      curr_length = params:get('s_'..cursor..'_length')
+      params:set('s_'..cursor..'_length', curr_length + i)
+    end
   end
 
   redraw()
@@ -129,6 +143,12 @@ function key(n, z)
       alt_2 = true
     else
       alt_2 = false
+    end
+  elseif n == 3 then
+    if z == 1 then
+      alt_3 = true
+    else
+      alt_3 = false
     end
   end
 end
