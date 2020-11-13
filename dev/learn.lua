@@ -59,19 +59,20 @@ function draw_sample_line(i)
 
   line_length = params:get('s_'..i..'_length')
   line_length = math.floor((line_length / file_length) * 100)
+
+  line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
   
   -- amplitude between 0 and 1, exponential decibel changes
   line_level = params:get('s_'..i..'_level')
   line_level = util.dbamp(line_level)
-  line_level = util.explin(0.0001, 1, 0, 15, line_level)
+  line_level = util.linlin(0, 1, 0, 15, line_level)
   line_level = math.floor(line_level + 0.5)
-  
+
   -- Draw each line 4px below line above it
   screen.level(line_level)
   screen.move(14 + line_start, 10 + 4 * i)
-
-  line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
   screen.line(line_end, 10 + 4 * i)
+  screen.stroke()
 end
 
 function draw_sample_pan(i)
