@@ -103,22 +103,22 @@ end
 
 function draw_sample_params()
   -- TODO This got weird. Proabably need to move everything down or up or something
-  write_param('s', num_to_string[cursor], {7, 44})
+  write_param('.-.', num_to_string[cursor], {7, 44})
   
   s_level = params:get('s_'..cursor..'_level')
-  write_param('level', s_level, {64, 44})
+  write_param('...', s_level, {64, 44})
 
   s_start = params:get('s_'..cursor..'_start')
-  write_param('start', s_start, {7, 54})
+  write_param('.-', s_start, {7, 54})
 
   s_length = params:get('s_'..cursor..'_length')
-  write_param('length', s_length, {64, 54})
+  write_param('-.', s_length, {64, 54})
 
   s_rate = params:get('s_'..cursor..'_rate')
-  write_param('rate', s_rate, {7, 64})
+  write_param('--', s_rate, {7, 64})
 
   s_pan = params:get('s_'..cursor..'_pan')
-  write_param('pan', s_pan, {64, 64})
+  write_param('.|.', s_pan, {64, 64})
 end
 
 -- Draw the line for the sample beneath the main sample line
