@@ -14,6 +14,8 @@ max_buffer = 300
 cursor = 1
 alt_2 = false
 
+num_to_string = {'one', 'two', 'three', 'four', 'five', 'six'}
+
 -- Add parameters for each of the 6 samples of the main file
 function add_samples()
   for i = 1,6 do
@@ -92,10 +94,38 @@ function draw_sample_pan(i)
   screen.line(121 + line_pan, 10 + 4 * i + 1)
 end
 
+function write_param(name, value, move)
+  screen.move(move[1], move[2])
+  screen.text(name)
+  screen.move(move[1] + 32, move[2])
+  screen.text(value)
+end
+
+function draw_sample_params()
+  -- TODO This got weird. Proabably need to move everything down or up or something
+  write_param('s', num_to_string[cursor], {7, 44})
+  
+  s_level = params:get('s_'..cursor..'_level')
+  write_param('level', s_level, {64, 44})
+
+  s_start = params:get('s_'..cursor..'_start')
+  write_param('start', s_start, {7, 54})
+
+  s_length = params:get('s_'..cursor..'_length')
+  write_param('length', s_length, {64, 54})
+
+  s_rate = params:get('s_'..cursor..'_rate')
+  write_param('rate', s_rate, {7, 64})
+
+  s_pan = params:get('s_'..cursor..'_pan')
+  write_param('pan', s_pan, {64, 64})
+end
+
 -- Draw the line for the sample beneath the main sample line
 function draw_sample(i)
   draw_sample_pan(i)
   draw_sample_line(i)
+  draw_sample_params()
 end
 
 function redraw()
