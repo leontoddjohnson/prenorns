@@ -73,6 +73,14 @@ function draw_sample_line(i)
   screen.move(14 + line_start, 10 + 4 * i)
   screen.line(line_end, 10 + 4 * i)
   screen.stroke()
+
+  -- Draw rate (minimum defined is between -5 and 5 times the normal speed)
+  line_rate = params:get('s_'..i..'_rate')
+  line_rate = util.linlin(-5, 5, 0, line_length, line_rate)
+
+  screen.move(14 + line_start + line_rate, 10 + 4 * i - 1)
+  screen.line(14 + line_start + line_rate, 10 + 4 * i + 1)
+  screen.stroke()
 end
 
 function draw_sample_pan(i)
@@ -86,8 +94,8 @@ end
 
 -- Draw the line for the sample beneath the main sample line
 function draw_sample(i)
-  draw_sample_line(i)
   draw_sample_pan(i)
+  draw_sample_line(i)
 end
 
 function redraw()
@@ -119,6 +127,9 @@ function enc(n, i)
     if alt_2 then
       curr_level = params:get('s_'..cursor..'_level')
       params:set('s_'..cursor..'_level', curr_level + i)
+    elseif alt_3 then
+      curr_rate = params:get('s_'..cursor..'_rate')
+      params:set('s_'..cursor..'_rate', curr_rate + i * 0.2)
     else
       curr_start = params:get('s_'..cursor..'_start')
       params:set('s_'..cursor..'_start', curr_start + i)
