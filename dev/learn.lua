@@ -72,16 +72,16 @@ function draw_sample_line(i)
 
   -- Draw each line 4px below line above it
   screen.level(line_level)
-  screen.move(14 + line_start, 10 + 4 * i)
-  screen.line(line_end, 10 + 4 * i)
+  screen.move(14 + line_start, 5 + 4 * i)
+  screen.line(line_end, 5 + 4 * i)
   screen.stroke()
 
   -- Draw rate (minimum defined is between -5 and 5 times the normal speed)
   line_rate = params:get('s_'..i..'_rate')
   line_rate = util.linlin(-5, 5, 0, line_length, line_rate)
 
-  screen.move(14 + line_start + line_rate, 10 + 4 * i - 1)
-  screen.line(14 + line_start + line_rate, 10 + 4 * i + 1)
+  screen.move(14 + line_start + line_rate, 5 + 4 * i - 1)
+  screen.line(14 + line_start + line_rate, 5 + 4 * i + 1)
   screen.stroke()
 end
 
@@ -90,8 +90,8 @@ function draw_sample_pan(i)
   line_pan = 7 * line_pan
 
   -- Halfway between the end of the sample line and the edge of the screen is 0 pan
-  screen.move(121 + line_pan, 10 + 4 * i - 1)
-  screen.line(121 + line_pan, 10 + 4 * i + 1)
+  screen.move(121 + line_pan, 5 + 4 * i - 1)
+  screen.line(121 + line_pan, 5 + 4 * i + 1)
 end
 
 function write_param(name, value, move)
@@ -102,23 +102,24 @@ function write_param(name, value, move)
 end
 
 function draw_sample_params()
-  -- TODO This got weird. Proabably need to move everything down or up or something
-  write_param('.-.', num_to_string[cursor], {7, 44})
+  write_param('.-.', num_to_string[cursor], {10, 42})
   
   s_level = params:get('s_'..cursor..'_level')
-  write_param('...', s_level, {64, 44})
+  write_param('...', s_level, {75, 42})
 
   s_start = params:get('s_'..cursor..'_start')
-  write_param('.-', s_start, {7, 54})
+  write_param('.-', s_start, {10, 52})
 
   s_length = params:get('s_'..cursor..'_length')
-  write_param('-.', s_length, {64, 54})
+  write_param('-.', s_length, {75, 52})
 
   s_rate = params:get('s_'..cursor..'_rate')
-  write_param('--', s_rate, {7, 64})
+  s_rate = string.format("%.1f", s_rate)
+  write_param('--', s_rate, {10, 62})
 
   s_pan = params:get('s_'..cursor..'_pan')
-  write_param('.|.', s_pan, {64, 64})
+  s_pan = string.format("%.1f", s_pan)
+  write_param('.|.', s_pan, {75, 62})
 end
 
 -- Draw the line for the sample beneath the main sample line
@@ -132,11 +133,11 @@ function redraw()
   screen.clear()
 
   -- Annotate where the cursor is (referencing sample)
-  screen.pixel(7, 10 + 4 * cursor)
+  screen.pixel(7, 5 + 4 * cursor)
 
   -- Draw audio file line (main line)
-  screen.move(14, 10)
-  screen.line(114, 10)
+  screen.move(14, 5)
+  screen.line(114, 5)
   screen.stroke()
 
   -- Draw sample line
