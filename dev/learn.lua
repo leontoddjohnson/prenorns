@@ -50,9 +50,30 @@ function add_samples()
   end
 end
 
+function init_samples()
+  -- send audio input to softcut input
+  audio.level_adc_cut(1)
+  softcut.buffer_clear()
+
+  for i=1,6 do
+    softcut.enable(i,1)
+    softcut.buffer(i,1)
+    softcut.buffer(i,2)
+    softcut.loop(i,1)
+    softcut.loop_start(1,1)
+    softcut.loop_end(1,6)  -- This seems to work
+    softcut.position(i,1)
+    softcut.play(i,0)
+    softcut.rate_slew_time(i,1)
+    softcut.level_slew_time(i,1)
+    softcut.pan_slew_time(i,1)
+  end
+end
+
 function init()
   -- Set initial sample values
   add_samples()
+  init_samples()
 end
 
 function draw_sample_line(i)
@@ -198,4 +219,32 @@ end
 
 function rerun()
   norns.script.load(norns.state.script)
+end
+
+function play_voice(i)
+  softcut.level(i,1)
+  softcut.position(i,1)
+  softcut.rate(i,1)
+  softcut.play(i,1)
+end
+
+function start_recording(i)
+  recording = true
+  softcut.level_input_cut(1,i,1)
+  softcut.level_input_cut(2,i,1)
+  softcut.rate_slew_time(i,0)  -- avoid recording slew sound
+  softcut.level(i,1)
+  softcut.rate(i,1)
+  softcut.position(i,1)
+  softcut.loop_start(i,1)
+  softcut.loop_end(i,5)
+  softcut.rec_level(i,1)
+  softcut.pre_level(i,1)
+  softcut.rec(i,1)
+end
+
+function stop_recording(i)
+  recording = false
+  softcut.rate_slew_time(i,1)
+  softcut.rec(i,0)
 end
