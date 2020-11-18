@@ -11,9 +11,15 @@
 -- Manipulate the level, pan, 
 -- rate, loop start/stop, and
 -- filter ban for each moment.
+-- 
+-- The first two moments are
+-- stereo, the second two are
+-- mono.
 --
 -- E1 - cursor (select moment)
 -- K1 (hold) - toggle moment 
+-- K2 + E1 - position
+--   (record start)
 --
 -- (After the cursor has been 
 -- placed between rows 1-4)
@@ -22,64 +28,105 @@
 -- K2 + E2 - level
 -- K3 + E3 - pan
 -- K3 + E2 - rate
--- K2 + E3 - loop end
+-- K2 + E3 - rest (pause)
 -- K2 + K3 + E1 - record start
 -- K2 + K3 - record/stop record
 --
 -- (After a moment is toggled 
--- & cursor is at row 5)
+--  & cursor is at row 5)
 -- E2 - BP filter min freq 
 --   (LP filter if furthest left)
 -- E3 - BP filter bandwidth 
 --   (HP filter if furthest right)
+-- 
+-- Adjust in Parameters Menu:
+-- buffer length, max moment,
+-- and overdub level
 
--- Adjust buffer_length and
--- max_moment in parameters
+metro = require 'metro'
 
-buffer_length = 600
-max_moment = 300
+params:add{
+  type='number', id='buffer_length', name='buffer length', 
+  min=0, max=300, default=200
+}
 
+params:add{
+  type='number', id='max_moment', name='maximum moment', 
+  min=0, max=300, default=75
+}
+
+params:add{
+  type='number', id='pre_level', name='overdub', 
+  min=0, max=1, default=0.1
+}
+
+-- Current (initial) state
+position = 0
 cursor = 1
 alt_2 = false
+alt_3 = false
+alt_23 = false
 
-num_to_string = {'one', 'two', 'three', 'four', 'five', 'six'}
+-- Portions of the buffer yet unrecorded
+recorded = {}
+
+num_to_string = {'one', 'two', 'three', 'four', 'filter'}
+
+min_freq = 10  -- min frequency for band (otherwise, lp)
+max_freq = 22000  -- max frequency for band (otherwise, hp)
 
 audio.level_cut(1) -- softcut master level (same as in LEVELS screen)
 audio.level_adc_cut(1) -- adc to softcut input
-
 softcut.buffer_clear()
 
--- Add parameters for each of the 6 moments of the main file
+-- Add parameters for each of the 4 moments of the main file
 function add_moments()
-  for i = 1,6 do
+  buffer_length = params:get('buffer_length')
+  max_moment = params:get('max_moment')
+
+  for i = 1,4 do
     params:add_separator('moment '..i)
 
     params:add{
-      type='number', id='s_'..i..'_start', name='moment '..i..' Start', 
+      type='number', id='m_'..i..'_start', name='moment '..i..' start', 
       min=0, max=buffer_length, default=0
     }
 
     params:add{
-      type='number', id='s_'..i..'_length', name='moment '..i..' Length', 
+      type='number', id='m_'..i..'_length', name='moment '..i..' length', 
       min=0, max=max_moment, default=0
     }
 
     params:add{
-      type='number', id='s_'..i..'_level', name='moment '..i..' Level', 
+      type='number', id='m_'..i..'_level', name='moment '..i..' level', 
       min=-math.huge, max=0, default=0
     }
 
-    -- To set an action here for level, use util.dbamp(), as in screen below
-
     params:add{
-      type='number', id='s_'..i..'_pan', name='moment '..i..' Pan', 
+      type='number', id='m_'..i..'_pan', name='moment '..i..' pan', 
       min=-1, max=1, default=0
     }
 
     params:add{
-      type='number', id='s_'..i..'_rate', name='moment '..i..' Rate', 
+      type='number', id='m_'..i..'_rate', name='moment '..i..' rate', 
       min=-5, max=5, default=1
     }
+
+    params:add{
+      type='number', id='m_'..i..'_rest', name='moment '..i..' rest', 
+      min=0, max=buffer_length, default=0
+    }
+
+    params:add{
+      type='number', id='m_'..i..'_min_freq', name='moment '..i..' min freq', 
+      min=min_freq, max=max_freq, default=min_freq
+    }
+
+    params:add{
+      type='number', id='m_'..i..'_bandwidth', name='moment '..i..' bandwidth', 
+      min=1, max=max_freq, default=max_freq
+    }
+
   end
 end
 
@@ -92,8 +139,7 @@ function init_stereo_moments()
 end
 
 function init_moments()
-  for i=1,6 do
-    
+  for i=1,4 do
     softcut.loop_start(i,1)
     softcut.loop_end(i,6)  -- This seems to work
     softcut.loop(i,1)
@@ -114,16 +160,18 @@ function init()
 end
 
 function draw_moment_line(i)
-  line_start = params:get('s_'..i..'_start')
+  buffer_length = params:get('buffer_length')
+
+  line_start = params:get('m_'..i..'_start')
   line_start = math.floor((line_start / buffer_length) * 100)
 
-  line_length = params:get('s_'..i..'_length')
+  line_length = params:get('m_'..i..'_length')
   line_length = math.floor((line_length / buffer_length) * 100)
 
   line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
   
   -- amplitude between 0 and 1, exponential decibel changes
-  line_level = params:get('s_'..i..'_level')
+  line_level = params:get('m_'..i..'_level')
   line_level = util.dbamp(line_level)
   line_level = util.linlin(0, 1, 0, 15, line_level)
   line_level = math.floor(line_level + 0.5)
@@ -135,7 +183,7 @@ function draw_moment_line(i)
   screen.stroke()
 
   -- Draw rate (minimum defined is between -5 and 5 times the normal speed)
-  line_rate = params:get('s_'..i..'_rate')
+  line_rate = params:get('m_'..i..'_rate')
   line_rate = util.linlin(-5, 5, 0, line_length, line_rate)
 
   screen.move(14 + line_start + line_rate, 5 + 4 * i - 1)
@@ -144,7 +192,7 @@ function draw_moment_line(i)
 end
 
 function draw_moment_pan(i)
-  line_pan = params:get('s_'..i..'_pan')
+  line_pan = params:get('m_'..i..'_pan')
   line_pan = 7 * line_pan
 
   -- Halfway between the end of the buffer line and the edge of the screen is 0 pan
@@ -162,22 +210,22 @@ end
 function draw_moment_params()
   write_param('.-.', num_to_string[cursor], {10, 42})
   
-  s_level = params:get('s_'..cursor..'_level')
-  write_param('...', s_level, {75, 42})
+  m_level = params:get('m_'..cursor..'_level')
+  write_param('...', m_level, {75, 42})
 
-  s_start = params:get('s_'..cursor..'_start')
-  write_param('.-', s_start, {10, 52})
+  m_start = params:get('m_'..cursor..'_start')
+  write_param('.-', m_start, {10, 52})
 
-  s_length = params:get('s_'..cursor..'_length')
-  write_param('-.', s_length, {75, 52})
+  m_length = params:get('m_'..cursor..'_length')
+  write_param('-.', m_length, {75, 52})
 
-  s_rate = params:get('s_'..cursor..'_rate')
-  s_rate = string.format("%.1f", s_rate)
-  write_param('--', s_rate, {10, 62})
+  m_rate = params:get('m_'..cursor..'_rate')
+  m_rate = string.format("%.1f", m_rate)
+  write_param('--', m_rate, {10, 62})
 
-  s_pan = params:get('s_'..cursor..'_pan')
-  s_pan = string.format("%.1f", s_pan)
-  write_param('.|.', s_pan, {75, 62})
+  m_pan = params:get('m_'..cursor..'_pan')
+  m_pan = string.format("%.1f", m_pan)
+  write_param('.|.', m_pan, {75, 62})
 end
 
 -- Draw the line for the moment beneath the main buffer line
@@ -193,13 +241,13 @@ function redraw()
   -- Annotate where the cursor is (referencing moment)
   screen.pixel(7, 5 + 4 * cursor)
 
-  -- Draw audio file line (main line)
-  screen.move(14, 5)
-  screen.line(114, 5)
-  screen.stroke()
+  -- Annotate where the position is (referencing the recording location)
+  buffer_length = params:get('buffer_length')
+  screen_position = util.linlin(0, buffer_length, 14, 114, position)
+  screen.pixel(screen_position, 2)
 
   -- Draw moment line
-  for i = 1, 6 do
+  for i = 1,4 do
     draw_moment(i)
   end
 
@@ -209,29 +257,33 @@ end
 function enc(n, i)
   -- Select moment
   if n == 1 then
-    cursor = util.clamp(cursor + i, 1, 6)
+    if alt_2 then
+      position = util.clamp(position + i, 0, params:get('buffer_length'))
+    else
+      cursor = util.clamp(cursor + i, 1, 4)
+    end
   end
 
   if n == 2 then
     if alt_2 then
-      curr_level = params:get('s_'..cursor..'_level')
-      params:set('s_'..cursor..'_level', curr_level + i)
+      curr_level = params:get('m_'..cursor..'_level')
+      params:set('m_'..cursor..'_level', curr_level + i)
     elseif alt_3 then
-      curr_rate = params:get('s_'..cursor..'_rate')
-      params:set('s_'..cursor..'_rate', curr_rate + i * 0.2)
+      curr_rate = params:get('m_'..cursor..'_rate')
+      params:set('m_'..cursor..'_rate', curr_rate + i * 0.2)
     else
-      curr_start = params:get('s_'..cursor..'_start')
-      params:set('s_'..cursor..'_start', curr_start + i)
+      curr_start = params:get('m_'..cursor..'_start')
+      params:set('m_'..cursor..'_start', curr_start + i)
     end
   end
 
   if n == 3 then
     if alt_3 then
-      curr_pan = params:get('s_'..cursor..'_pan')
-      params:set('s_'..cursor..'_pan', curr_pan + i / 10)
+      curr_pan = params:get('m_'..cursor..'_pan')
+      params:set('m_'..cursor..'_pan', curr_pan + i / 10)
     else
-      curr_length = params:get('s_'..cursor..'_length')
-      params:set('s_'..cursor..'_length', curr_length + i)
+      curr_length = params:get('m_'..cursor..'_length')
+      params:set('m_'..cursor..'_length', curr_length + i)
     end
   end
 
@@ -265,21 +317,68 @@ function play_voice(i)
   softcut.play(i,1)
 end
 
-function start_recording(i)
+function start_recording()
   recording = true
-  softcut.level_input_cut(1,i,1)
-  softcut.level_input_cut(2,i,1)
-  softcut.rate_slew_time(i,0)  -- avoid recording slew sound
-  softcut.level(i,1)
-  softcut.rate(i,1)
-  softcut.position(i,1)
-  softcut.rec_level(i,1)
-  softcut.pre_level(i,0.75)
-  softcut.rec(i,1)
+  start_position = position
+  rec_position = position
+  buffer_length = params:get('buffer_length')
+  screen_start_position = util.linlin(0, buffer_length, 14, 114, start_position)
+
+  -- Counting for recording
+  time_unit = 0.1
+  counter = metro.init(record, time_unit)
+  counter:start()
+
+  for i = 1,2 do
+    softcut.level_input_cut(i,i,1)
+    softcut.level_input_cut(i,i,1)
+    softcut.rate_slew_time(i,0)  -- avoid recording slew sound
+    softcut.level(i,1)
+    softcut.rate(i,1)
+    softcut.position(i,position)
+    softcut.rec_level(i,1)
+    softcut.pre_level(i,params:get('pre_level'))
+    softcut.rec(i,1)
+  end
 end
 
-function stop_recording(i)
+-- Work on this ...
+-- function add_recording(start, end)
+--   earlier_start = true
+--   later_ending = true
+  
+--   for i,r in pairs(recorded) do
+--     if r[1] < start and start < r[2] then
+--         middle = i
+--         break
+--         en
+--   end
+-- end
+
+function stop_recording()
   recording = false
-  softcut.rate_slew_time(i,1)
-  softcut.rec(i,0)
+  counter:stop()
+  
+  for i = 1,2 do
+    softcut.rate_slew_time(i,1)
+    softcut.rec(i,0)
+  end
+
+  redraw()
+end
+
+function record()
+  rec_position = rec_position + time_unit
+
+  if rec_position > params:get('buffer_length') then
+    counter:stop()
+    stop_recording()
+  end
+
+  -- Draw recording line
+  screen_position = util.linlin(0, buffer_length, 14, 114, rec_position)
+  screen.move(screen_start_position, 4)
+  screen.line(screen_position, 4)
+  screen.stroke()
+  screen.update()
 end
