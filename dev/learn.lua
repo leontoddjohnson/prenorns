@@ -35,9 +35,9 @@
 -- (After a moment is toggled 
 --  & cursor is at row 5)
 -- E2 - BP filter min freq 
---   (LP filter if furthest left)
+--   (LP if furthest left)
 -- E3 - BP filter bandwidth 
---   (HP filter if furthest right)
+--   (HP if furthest right)
 -- 
 -- Adjust in Parameters Menu:
 -- buffer length, max moment,
@@ -246,12 +246,24 @@ function redraw()
   screen_position = util.linlin(0, buffer_length, 14, 114, position)
   screen.pixel(screen_position, 2)
 
+  -- Draw the recordings
+  draw_clips()
+
   -- Draw moment line
   for i = 1,4 do
     draw_moment(i)
   end
 
   screen.update()
+end
+
+function draw_clips()
+  for i, r in pairs(recorded) do
+    screen_start = util.linlin(0, buffer_length, 14, 114, r[1])
+    screen_stop = util.linlin(0, buffer_length, 14, 114, r[2])
+    screen.move(screen_start, 4)
+    screen.line(screen_stop, 4)
+  end
 end
 
 function enc(n, i)
@@ -342,22 +354,40 @@ function start_recording()
   end
 end
 
--- Work on this ...
--- function add_recording(start, end)
---   earlier_start = true
---   later_ending = true
+function add_recording(start, stop)
+  add_new = true
   
---   for i,r in pairs(recorded) do
---     if r[1] < start and start < r[2] then
---         middle = i
---         break
---         en
---   end
--- end
+  -- Go through each recorded clip, and lengthen if need be
+  for i,r in pairs(recorded) do
+    -- Do we add to the end of a clip?
+    if r[1] < start and start < r[2] and r[2] < stop then
+      add_new = false
+      recorded[i][2] = stop
+      break
+    -- Do we start a clip earlier?
+    elseif start < r[1] and r[1] < stop and stop < r[2] then
+      add_new = false
+      recorded[i][1] = start
+      break
+    -- Is this a subset of another clip already?
+    elseif r[1] < start and stop < r[2] then
+      add_new = false
+      break
+    end
+  end
+
+  -- If this is an isolated recording, add a new clip
+  if add_new then
+    table.insert(recorded, {start, stop})
+  end
+
+end
 
 function stop_recording()
   recording = false
   counter:stop()
+
+  add_recording(start_position, rec_position)
   
   for i = 1,2 do
     softcut.rate_slew_time(i,1)
@@ -381,4 +411,11 @@ function record()
   screen.line(screen_position, 4)
   screen.stroke()
   screen.update()
+end
+
+function whatsrecorded()
+  for i=1,#recorded do
+    print(i)
+    tab.print(recorded[i]) 
+  end
 end
