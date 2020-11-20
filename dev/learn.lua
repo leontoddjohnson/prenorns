@@ -63,9 +63,10 @@ params:add{
 -- Current (initial) state
 position = 0
 cursor = 1
+cursors = {false, false, false, false}  -- Selected moments
+
 alt_2 = false
 alt_3 = false
-alt_23 = false
 
 -- Portions of the buffer yet unrecorded
 recorded = {}
@@ -174,7 +175,7 @@ function draw_moment_line(i)
   line_level = params:get('m_'..i..'_level')
   line_level = util.dbamp(line_level)
   line_level = util.linlin(0, 1, 0, 15, line_level)
-  line_level = math.floor(line_level + 0.5)
+  line_level = math.floor(line_level + 0.5)  -- round
 
   -- Draw each line 4px below line above it
   screen.level(line_level)
@@ -239,7 +240,14 @@ function redraw()
   screen.clear()
 
   -- Annotate where the cursor is (referencing moment)
-  screen.pixel(7, 5 + 4 * cursor)
+  screen.pixel(2, 5 + 4 * cursor)
+
+  -- Annotate selected cursors
+  for c=1,#cursors do
+    if cursors[c] then
+      screen.pixel(8, 5 + 4 * c)
+    end
+  end
 
   -- Annotate where the position is (referencing the recording location)
   buffer_length = params:get('buffer_length')
@@ -261,15 +269,15 @@ function draw_clips()
   for i, r in pairs(recorded) do
     screen_start = util.linlin(0, buffer_length, 14, 114, r[1])
     screen_stop = util.linlin(0, buffer_length, 14, 114, r[2])
-    screen.move(screen_start, 4)
-    screen.line(screen_stop, 4)
+    screen.move(screen_start, 6)
+    screen.line(screen_stop, 6)
   end
 end
 
 function enc(n, i)
   -- Select moment
   if n == 1 then
-    if alt_2 then
+    if alt_3 then
       position = util.clamp(position + i, 0, params:get('buffer_length'))
     else
       cursor = util.clamp(cursor + i, 1, 4)
@@ -302,20 +310,37 @@ function enc(n, i)
   redraw()
 end
 
+function toggle_recording()
+  if not recording then
+    start_recording()
+  else
+    stop_recording()
+  end
+end
+
 function key(n, z)
   if n == 2 then
     if z == 1 then
+      -- Toggle a moment
+      cursors[cursor] = not cursors[cursor]
       alt_2 = true
+      if alt_3 then
+        toggle_recording()
+      end
     else
       alt_2 = false
     end
   elseif n == 3 then
     if z == 1 then
       alt_3 = true
+      if alt_2 then
+        toggle_recording()
+      end
     else
       alt_3 = false
     end
   end
+  redraw()
 end
 
 function rerun()
@@ -407,9 +432,12 @@ function record()
 
   -- Draw recording line
   screen_position = util.linlin(0, buffer_length, 14, 114, rec_position)
-  screen.move(screen_start_position, 4)
-  screen.line(screen_position, 4)
+  screen.move(screen_start_position, 5)
+  screen.line(screen_position, 5)
+  screen.move(screen_start_position, 7)
+  screen.line(screen_position, 7)
   screen.stroke()
+
   screen.update()
 end
 
