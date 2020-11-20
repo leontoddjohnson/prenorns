@@ -43,6 +43,9 @@
 -- buffer length, max moment,
 -- and overdub level
 
+-- TODO: Fix the issue with level and screen.level
+-- TODO: Capture fade_time in lower menu??
+
 metro = require 'metro'
 
 params:add{
@@ -142,9 +145,9 @@ end
 function init_moments()
   for i=1,4 do
     softcut.loop_start(i,1)
-    softcut.loop_end(i,6)  -- This seems to work
+    softcut.loop_end(i,6)  -- This seems to work if longer than loop
     softcut.loop(i,1)
-    softcut.fade_time(i, 0.1) -- voice 1 fade time
+    softcut.fade_time(i, 0.1) -- crossfade amount 
     softcut.position(i,1)
     softcut.play(i,0)
     softcut.rate_slew_time(i,1)
@@ -254,10 +257,17 @@ function redraw()
   screen_position = util.linlin(0, buffer_length, 14, 114, position)
   screen.pixel(screen_position, 2)
 
+  if alt_3 then
+    screen.move(64, 35)
+    min = math.floor(position / 60)
+    sec = position % 60
+    screen.text_center(min .. " : " .. sec)
+  end
+
   -- Draw the recordings
   draw_clips()
 
-  -- Draw moment line
+  -- Draw moment lines
   for i = 1,4 do
     draw_moment(i)
   end
