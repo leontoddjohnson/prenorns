@@ -32,11 +32,11 @@
 -- K2 + K3 + E1 - record start
 -- K2 + K3 - record/stop record
 --
--- (After a moment is toggled 
+-- (After a moment is toggled
 --  & cursor is at row 5)
--- E2 - BP filter min freq 
+-- E2 - BP filter min freq
 --   (LP if furthest left)
--- E3 - BP filter bandwidth 
+-- E3 - BP filter bandwidth
 --   (HP if furthest right)
 -- 
 -- Adjust in Parameters Menu:
@@ -281,6 +281,8 @@ function draw_clips()
     screen_stop = util.linlin(0, buffer_length, 14, 114, r[2])
     screen.move(screen_start, 6)
     screen.line(screen_stop, 6)
+    screen.level(15)
+    screen.stroke()
   end
 end
 
@@ -294,26 +296,30 @@ function enc(n, i)
     end
   end
 
-  if n == 2 then
-    if alt_2 then
-      curr_level = params:get('m_'..cursor..'_level')
-      params:set('m_'..cursor..'_level', curr_level + i)
-    elseif alt_3 then
-      curr_rate = params:get('m_'..cursor..'_rate')
-      params:set('m_'..cursor..'_rate', curr_rate + i * 0.2)
-    else
-      curr_start = params:get('m_'..cursor..'_start')
-      params:set('m_'..cursor..'_start', curr_start + i)
-    end
-  end
-
-  if n == 3 then
-    if alt_3 then
-      curr_pan = params:get('m_'..cursor..'_pan')
-      params:set('m_'..cursor..'_pan', curr_pan + i / 10)
-    else
-      curr_length = params:get('m_'..cursor..'_length')
-      params:set('m_'..cursor..'_length', curr_length + i)
+  -- For the current and toggled moments, adjust parameters
+  for c_i, c_selected in pairs(cursors) do
+    if c_i == cursor or c_selected then
+      if n == 2 then
+        if alt_2 then
+          curr_level = params:get('m_'..c_i..'_level')
+          params:set('m_'..c_i..'_level', curr_level + i)
+        elseif alt_3 then
+          curr_rate = params:get('m_'..c_i..'_rate')
+          params:set('m_'..c_i..'_rate', curr_rate + i * 0.2)
+        else
+          curr_start = params:get('m_'..c_i..'_start')
+          params:set('m_'..c_i..'_start', curr_start + i)
+        end
+      end
+      if n == 3 then
+        if alt_3 then
+          curr_pan = params:get('m_'..c_i..'_pan')
+          params:set('m_'..c_i..'_pan', curr_pan + i / 10)
+        else
+          curr_length = params:get('m_'..c_i..'_length')
+          params:set('m_'..c_i..'_length', curr_length + i)
+        end
+      end
     end
   end
 
