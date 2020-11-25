@@ -128,7 +128,7 @@ function add_moments()
 
     params:add{
       type='number', id='m_'..i..'_bandwidth', name='moment '..i..' bandwidth', 
-      min=1, max=max_freq, default=max_freq
+      min=1, max=max_freq - min_freq, default=max_freq - min_freq
     }
 
   end
@@ -205,6 +205,7 @@ function draw_moment_pan(i)
 end
 
 function write_param(name, value, move)
+  screen.level(15)
   screen.move(move[1], move[2])
   screen.text(name)
   screen.move(move[1] + 32, move[2])
@@ -230,6 +231,16 @@ function draw_moment_params()
   m_pan = params:get('m_'..cursor..'_pan')
   m_pan = string.format("%.1f", m_pan)
   write_param('.|.', m_pan, {75, 62})
+end
+
+function draw_filter_line(i)
+  filter_start = params:get('m_'..i..'_min_freq')
+  filter_start = util.linlin(min_freq, max_freq, 14, 114, filter_start)
+  filter_bw = params:get('m_'..i..'_bandwidth')
+  filter_bw = util.linlin(1, max_freq - min_freq, 1, 100, filter_bw)
+  screen.move(filter_start, 28)
+  screen.line(filter_start + filter_bw, 28)
+  screen.stroke()
 end
 
 -- Draw the line for the moment beneath the main buffer line
@@ -263,6 +274,9 @@ function redraw()
     sec = position % 60
     screen.text_center(min .. " : " .. sec)
   end
+
+  screen.level(15)
+  screen.stroke()
 
   -- Draw the recordings
   draw_clips()
