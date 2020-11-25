@@ -173,7 +173,7 @@ function draw_moment_line(i)
   line_length = math.floor((line_length / buffer_length) * 100)
 
   line_end = util.clamp(14 + line_start + line_length, 14 + line_start, 114)
-  
+
   -- amplitude between 0 and 1, exponential decibel changes
   line_level = params:get('m_'..i..'_level')
   line_level = util.dbamp(line_level)
@@ -189,9 +189,9 @@ function draw_moment_line(i)
   -- Draw rate (minimum defined is between -5 and 5 times the normal speed)
   line_rate = params:get('m_'..i..'_rate')
   line_rate = util.linlin(-5, 5, 0, line_length, line_rate)
-
-  screen.move(14 + line_start + line_rate, 5 + 4 * i - 1)
-  screen.line(14 + line_start + line_rate, 5 + 4 * i + 1)
+  line_rate = util.clamp(14 + line_start + line_rate, 14 + line_start, 114)
+  screen.move(line_rate, 5 + 4 * i - 1)
+  screen.line(line_rate, 5 + 4 * i + 1)
   screen.stroke()
 end
 
@@ -238,8 +238,9 @@ function draw_filter_line(i)
   filter_start = util.linlin(min_freq, max_freq, 14, 114, filter_start)
   filter_bw = params:get('m_'..i..'_bandwidth')
   filter_bw = util.linlin(1, max_freq - min_freq, 1, 100, filter_bw)
-  screen.move(filter_start, 28)
-  screen.line(filter_start + filter_bw, 28)
+  filter_end = util.clamp(filter_start + filter_bw, filter_start, 114)
+  screen.move(filter_start, 30)
+  screen.line(filter_end, 30)
   screen.stroke()
 end
 
@@ -268,12 +269,12 @@ function redraw()
   screen_position = util.linlin(0, buffer_length, 14, 114, position)
   screen.pixel(screen_position, 2)
 
-  if alt_3 then
-    screen.move(64, 35)
-    min = math.floor(position / 60)
-    sec = position % 60
-    screen.text_center(min .. " : " .. sec)
-  end
+  -- if alt_3 then
+  --   screen.move(64, 35)
+  --   min = math.floor(position / 60)
+  --   sec = position % 60
+  --   screen.text_center(min .. " : " .. sec)
+  -- end
 
   screen.level(15)
   screen.stroke()
@@ -285,6 +286,8 @@ function redraw()
   for i = 1,4 do
     draw_moment(i)
   end
+
+  draw_filter_line(cursor)
 
   screen.update()
 end
@@ -303,10 +306,18 @@ end
 function enc(n, i)
   -- Select moment
   if n == 1 then
-    if alt_3 then
+    if alt_2 then
+      curr_min_freq = params:get('m_'..cursor..'_min_freq')
+      params:set('m_'..cursor..'_min_freq', curr_min_freq + i * 100)
+    elseif alt_3 then
       position = util.clamp(position + i, 0, params:get('buffer_length'))
     else
       cursor = util.clamp(cursor + i, 1, 4)
+    end
+  elseif n == 3 then
+    if alt_2 then
+      curr_bandwidth = params:get('m_'..cursor..'_bandwidth')
+      params:set('m_'..cursor..'_bandwidth', curr_bandwidth + i * 100)
     end
   end
 
@@ -329,7 +340,7 @@ function enc(n, i)
         if alt_3 then
           curr_pan = params:get('m_'..c_i..'_pan')
           params:set('m_'..c_i..'_pan', curr_pan + i / 10)
-        else
+        elseif not alt_2 then
           curr_length = params:get('m_'..c_i..'_length')
           params:set('m_'..c_i..'_length', curr_length + i)
         end
