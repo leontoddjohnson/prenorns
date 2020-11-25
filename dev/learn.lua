@@ -63,6 +63,8 @@ params:add{
   min=0, max=1, default=0.1
 }
 
+num_to_dots = {'.', '. .', '. . .', '. . . .'}
+
 -- Current (initial) state
 position = 0
 cursor = 1
@@ -73,8 +75,6 @@ alt_3 = false
 
 -- Portions of the buffer yet unrecorded
 recorded = {}
-
-num_to_string = {'one', 'two', 'three', 'four', 'filter'}
 
 min_freq = 10  -- min frequency for band (otherwise, lp)
 max_freq = 22000  -- max frequency for band (otherwise, hp)
@@ -204,33 +204,59 @@ function draw_moment_pan(i)
   screen.line(121 + line_pan, 5 + 4 * i + 1)
 end
 
-function write_param(name, value, move)
-  screen.level(15)
-  screen.move(move[1], move[2])
-  screen.text(name)
-  screen.move(move[1] + 32, move[2])
-  screen.text(value)
+function secs_to_text(secs)
+  min = math.floor(secs / 60)
+  sec = secs % 60
+  return min .. " : " .. sec
 end
 
 function draw_moment_params()
-  write_param('.-.', num_to_string[cursor], {10, 42})
-  
-  m_level = params:get('m_'..cursor..'_level')
-  write_param('...', m_level, {75, 42})
+  screen.level(15)
+  -- position, start, length
+  -- level, rate, pan
+  -- f_start - f_bw
 
+  -- position
+  screen.move(20, 42)
+  screen.text_center(secs_to_text(position))
+
+  -- start
   m_start = params:get('m_'..cursor..'_start')
-  write_param('.-', m_start, {10, 52})
+  screen.move(64, 42)
+  screen.text_center(secs_to_text(m_start))
 
+  -- length
   m_length = params:get('m_'..cursor..'_length')
-  write_param('-.', m_length, {75, 52})
+  screen.move(108, 42)
+  screen.text_center(secs_to_text(m_length))
 
+  -- level
+  m_level = params:get('m_'..cursor..'_level')
+  screen.move(20, 52)
+  screen.text_center(m_level)
+
+  -- rate
   m_rate = params:get('m_'..cursor..'_rate')
   m_rate = string.format("%.1f", m_rate)
-  write_param('--', m_rate, {10, 62})
+  screen.move(64, 52)
+  screen.text_center(m_rate)
 
+  -- pan
   m_pan = params:get('m_'..cursor..'_pan')
   m_pan = string.format("%.1f", m_pan)
-  write_param('.|.', m_pan, {75, 62})
+  screen.move(108, 52)
+  screen.text_center(m_pan)
+
+  -- filter
+  m_min_freq = params:get('m_'..cursor..'_min_freq')
+  m_bandwidth = params:get('m_'..cursor..'_bandwidth')
+  m_end_freq = m_min_freq + m_bandwidth
+  screen.move(20, 62)
+  screen.text_center(string.format("%.2f", m_min_freq / 1000))
+  screen.move(64, 62)
+  screen.text_center(num_to_dots[cursor])
+  screen.move(108, 62)
+  screen.text_center(string.format("%.2f", m_end_freq / 1000))
 end
 
 function draw_filter_line(i)
@@ -268,13 +294,6 @@ function redraw()
   buffer_length = params:get('buffer_length')
   screen_position = util.linlin(0, buffer_length, 14, 114, position)
   screen.pixel(screen_position, 2)
-
-  -- if alt_3 then
-  --   screen.move(64, 35)
-  --   min = math.floor(position / 60)
-  --   sec = position % 60
-  --   screen.text_center(min .. " : " .. sec)
-  -- end
 
   screen.level(15)
   screen.stroke()
