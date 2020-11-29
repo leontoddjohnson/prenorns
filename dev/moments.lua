@@ -182,16 +182,16 @@ function draw_moment_line(i)
 
   -- Draw each line 4px below line above it
   screen.level(line_level)
-  screen.move(14 + line_start, 5 + 4 * i)
-  screen.line(line_end, 5 + 4 * i)
+  screen.move(14 + line_start, 10 + 4 * i)
+  screen.line(line_end, 10 + 4 * i)
   screen.stroke()
 
   -- Draw rate (minimum defined is between -5 and 5 times the normal speed)
   line_rate = params:get('m_'..i..'_rate')
   line_rate = util.linlin(-5, 5, 0, line_length, line_rate)
   line_rate = util.clamp(14 + line_start + line_rate, 14 + line_start, 114)
-  screen.move(line_rate, 5 + 4 * i - 1)
-  screen.line(line_rate, 5 + 4 * i + 1)
+  screen.move(line_rate, 10 + 4 * i - 1)
+  screen.line(line_rate, 10 + 4 * i + 1)
   screen.stroke()
 end
 
@@ -200,8 +200,8 @@ function draw_moment_pan(i)
   line_pan = 7 * line_pan
 
   -- Halfway between the end of the buffer line and the edge of the screen is 0 pan
-  screen.move(121 + line_pan, 5 + 4 * i - 1)
-  screen.line(121 + line_pan, 5 + 4 * i + 1)
+  screen.move(121 + line_pan, 10 + 4 * i - 1)
+  screen.line(121 + line_pan, 10 + 4 * i + 1)
 end
 
 function secs_to_text(secs)
@@ -265,8 +265,8 @@ function draw_filter_line(i)
   filter_bw = params:get('m_'..i..'_bandwidth')
   filter_bw = util.linlin(1, max_freq - min_freq, 1, 100, filter_bw)
   filter_end = util.clamp(filter_start + filter_bw, filter_start, 114)
-  screen.move(filter_start, 30)
-  screen.line(filter_end, 30)
+  screen.move(filter_start, 32)
+  screen.line(filter_end, 32)
   screen.stroke()
 end
 
@@ -281,12 +281,12 @@ function redraw()
   screen.clear()
 
   -- Annotate where the cursor is (referencing moment)
-  screen.pixel(2, 5 + 4 * cursor)
+  screen.pixel(2, 10 + 4 * cursor)
 
   -- Annotate selected cursors
   for c=1,#cursors do
     if cursors[c] then
-      screen.pixel(8, 5 + 4 * c)
+      screen.pixel(8, 10 + 4 * c)
     end
   end
 
