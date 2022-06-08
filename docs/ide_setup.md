@@ -45,9 +45,9 @@ Open up VS Code, and open the folder where you keep your development code (presu
 2. In your User (or Workplace) settings, you can either place the following in your *settings.json* file, or you can manually update the corresponding settings in the UI by typing **Cmd + ,** in VS Code, and finding the so-named items.
 
     ```json
-        "Lua.workspace.library": {
-            "path/to/norns/lua": true
-        },
+        "Lua.workspace.library": [
+            "path/to/norns/lua"
+        ],
         "Lua.diagnostics.disable": [
             "lowercase-global"
         ]
