@@ -1,6 +1,9 @@
 # VSCode + norns
 
-Create a comfortable working environment with the Visual Studio Code IDE and norns. *I'm using a 13" Macbook Pro, 2017.*
+Create a comfortable working environment with the Visual Studio Code IDE and norns. Basic idea:
+
+- **Use VSCode for coding**
+- **Use Maiden for testing**
 
 ## 1 Cloning `norns`
 
