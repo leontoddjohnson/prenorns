@@ -39,7 +39,10 @@ Open up VS Code, and open the folder where you keep your development code (presu
         ],
         "Lua.diagnostics.disable": [
             "lowercase-global"
-        ]
+        ],
+        "Lua.runtime.special": {
+            "include": "require"
+        }
     ```
     The `"path/to/norns"` is exactly the path to the *norns* directory we cloned above, and the *lua* folder is specifically that subdirectory. You can also add any other paths that contain scripts you want to reference in here, but likely you'll reference those by calling `require` in your script.
 
