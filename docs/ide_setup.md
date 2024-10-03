@@ -11,11 +11,11 @@ In Maiden (which is awesome), we have access to several pre-defined scripts on i
 
 ## 2 WiFi, SSH, and Matron
 
-First (after plugging in the WiFi hub into the norns), make sure your laptop and [norns](https://monome.org/docs/norns/play/#wifi) are connected to the same WiFi network.
+First (after plugging in the WiFi hub into the norns), make sure your laptop and [norns](https://monome.org/docs/norns/wifi-files/#wifi-connect) are connected to the same WiFi network.
 
-1. Create an SMB connection to the norns using **Cmd + K** from Finder in your MacOS (click the desktop). Then type either *smb://norns.local* or the IP address listed in the SYSTEM page on your norns. Log in with the [norns credentials](https://monome.org/docs/norns/play/#network-connect). You should now see the *dust* directory in your finder window under the *norns.local* (or norns IP Address) network location.
+1. Create an [SMB connection to norns](https://monome.org/docs/norns/wifi-files/#macOS) for sharing files. This tends to go faster if you use a hotspot!
 
-2. You'll also want to connect (via [SSH](https://monome.org/docs/norns/play/#ssh)) to the norns. Open a terminal, and type `ssh we@norns.local` or `ssh we@<ip_address>`. The password, again, is **sleep**. You can save this profile in your `.ssh/config` file like this:
+2. You'll also want to connect (via [SSH](https://monome.org/docs/norns/advanced-access/#ssh)) to the norns. You can save this profile in your `.ssh/config` file like this:
 
     ```bash
     Host norns
@@ -23,21 +23,7 @@ First (after plugging in the WiFi hub into the norns), make sure your laptop and
         User we
     ```
 
-3. Now, you can open Matron by running
-
-    ```bash
-    norns/build/maiden-repl/maiden-repl
-    ```
-
-    To quit Matron, type `q` and **Enter**.
-
-We'll use Matron in a bit.
-
-If you want to store the variable for easy access later, you can put the following code in your `.profile` file in the home directory on norns:
-
-```bash
-alias matron="norns/build/maiden-repl/maiden-repl"
-```
+3. Run commands in [matron](https://monome.org/docs/norns/maiden/#repl) at the bottom of the Maiden console.
 
 ## 3 VS Code Setup
 
