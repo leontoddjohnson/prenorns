@@ -6,9 +6,6 @@ ssh we@norns.local
 norns/build/maiden-repl/maiden-repl
 ```
 
-## 
-
-
 ## Quick Links
 
 - [Connection](https://monome.org/docs/norns/play/#network-connect)
