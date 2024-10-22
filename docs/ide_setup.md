@@ -70,6 +70,16 @@ Now, I haven't quite figured out a smoother way to initiate this process, but th
     end
     ```
 
+## 5 Xeus-Lua
+
+Install [xeus-lua](https://github.com/jupyter-xeus/xeus-lua?tab=readme-ov-file#installation) with a few caveats:
+
+- Replace `mamba` with `conda` to create environment, and also use `conda` to activate environment
+- Only install `xeus-lua` with `conda install xeus-lua -c conda-forge` (i.e., no need to install jupyter lab)
+- Install the [Jupyter extension for VS Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)
+
+Open notebooks in VS Code, and select the "XLua" Kernel from the "Jupyter kernels" list.
+
 # Caveats
 
 Just a few things I found while troubleshooting this:

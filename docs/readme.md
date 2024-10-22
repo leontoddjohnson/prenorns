@@ -61,11 +61,3 @@ The main board runs from note `36` to note `99`.
 For the knobs, they are `cc` controls, where counter-clockwise outputs value `127` and clockwise `1`.
 
 See [this](https://help.ableton.com/hc/en-us/articles/209071249-Push-1-2-User-Mode-for-custom-MIDI-mappings) article.
-
-## Terminology
-
-Term | Rough Definition
---- | ---
-*slew* | Portamento, sort of "slur"
-ADC | Analog to Digital Converter
-*pre* | **Preserve** $\in[0, 1]$, level of buffer to preserve at next pass (i.e., overdub)
