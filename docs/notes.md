@@ -8,3 +8,7 @@
 ## engines
 
 - Get list of engines with `tab.print(engine.names)`.
+
+## `util`
+
+- the `util.linlin` will translate values above the input range to the maximum output value.
